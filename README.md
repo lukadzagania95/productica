@@ -2,7 +2,7 @@
 
 Customer-owned product recognition: **Upload → Label → Train → Test → Deploy → Improve.**
 
-A functioning first MVP for retail / CPG recognition. The full pipeline runs locally with real pretrained-model fine-tuning. The private hosted web app stores images and annotations; cloud training and inference require a separately deployed recognition worker. No cloud compute account or billing is configured in this repository.
+A functioning first MVP for retail / CPG recognition. The full pipeline runs locally with real pretrained-model fine-tuning. The hosted app uses an authenticated Modal recognition worker for training and inference. This deployment has passed a synthetic cloud training and prediction test. Account credentials are kept outside the repository; a new deployment needs its own provider connection.
 
 ## What works
 
@@ -76,7 +76,7 @@ The web backend calls `/jobs`, `/jobs/{id}`, `/models/{id}/predict`, `/models/{i
 
 ## Connect a cloud worker
 
-The included `worker/modal_service.py` is a deployment adapter, **not a deployed or cloud-validated service**. It needs your Modal account and spending approval. It requests a T4 for the API and training functions with one container per function; this is a concurrency limit, not a hard spending cap.
+The included `worker/modal_service.py` has been deployed and tested on Modal. It uses one T4 training container and a CPU API container, with explicit memory reservations and a 60-second idle window. These are resource and concurrency limits, not a hard spending cap. Deploying into a different account requires that account’s authorization and allowance.
 
 1. Install / authenticate the official Modal CLI in a separate environment.
 2. Create a Modal secret named `productica-worker` containing `TRAINING_WORKER_KEY` using the provider's secret UI. Use a strong random value and keep it out of shell history and Git.
