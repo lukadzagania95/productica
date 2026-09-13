@@ -166,6 +166,7 @@ export default function Productica() {
     [name, setName] = useState(""),
     [wid, setWid] = useState(""),
     [editing, setEditing] = useState<Item | null>(null),
+    [deletingSku, setDeletingSku] = useState<Item | null>(null),
     [query, setQuery] = useState(""),
     [testFile, setTestFile] = useState<File | null>(null),
     [testUrl, setTestUrl] = useState(""),
@@ -233,6 +234,7 @@ export default function Productica() {
     setTestUrl("");
     setPredictions(null);
     setEditing(null);
+    setDeletingSku(null);
     load(pid).catch((e) => {
       setError(e.message);
       setLoading(false);
@@ -813,6 +815,16 @@ export default function Productica() {
                                         0,
                                       )}
                                     </small>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      aria-label={`Remove SKU ${c.name}`}
+                                      title={`Remove SKU ${c.name}`}
+                                      disabled={!!busy}
+                                      onClick={() => setDeletingSku(c)}
+                                    >
+                                      <Trash2 size={16} />
+                                    </Button>
                                   </div>
                                 ))}
                               </div>
@@ -1491,6 +1503,35 @@ export default function Productica() {
           )}
         </footer>
       </main>
+      <AlertDialog
+        open={!!deletingSku}
+        onOpenChange={(open) => !open && !busy && setDeletingSku(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove SKU “{deletingSku?.name}”?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This SKU will no longer be required for new training runs. Any labels
+              assigned to it will be removed, and affected images will need review
+              again. Your images and existing trained models will be kept.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={!!busy}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={!!busy}
+              onClick={(event) => {
+                event.preventDefault();
+                if (deletingSku)
+                  act("Removing SKU", { action: "deleteSku", skuId: deletingSku.id }, () => setDeletingSku(null));
+              }}
+            >
+              {busy === "Removing SKU" ? "Removing…" : "Remove SKU"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <Dialog
         open={dialog === "project" || dialog === "workspace"}
         onOpenChange={(o) => !o && setDialog("")}

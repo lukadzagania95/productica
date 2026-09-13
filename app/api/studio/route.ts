@@ -277,6 +277,21 @@ export async function POST(req: Request) {
       }
       return Response.json({ id: sid });
     }
+    if (action === "deleteSku") {
+      const sid = text(b.skuId, 80);
+      if (!(await one("SELECT id FROM skus WHERE id=? AND project_id=?", sid, pid)))
+        throw new ApiError(404, "SKU not found in this project.");
+      // Keep model snapshots intact; only the editable dataset changes.
+      await db().batch([
+        db().prepare(`UPDATE images SET
+          annotations=(SELECT json_group_array(json(value)) FROM json_each(images.annotations)
+            WHERE json_extract(value, '$.skuId') <> ?), reviewed=0
+          WHERE project_id=? AND EXISTS(SELECT 1 FROM json_each(images.annotations)
+            WHERE json_extract(value, '$.skuId')=?)`).bind(sid, pid, sid),
+        db().prepare("DELETE FROM skus WHERE id=? AND project_id=?").bind(sid, pid),
+      ]);
+      return Response.json({ ok: true });
+    }
     if (action === "annotations") {
       let im = await ownedImage(b.imageId, u.userId);
       if (im.project_id !== pid)
@@ -306,13 +321,20 @@ export async function POST(req: Request) {
       }
       if (!["train", "validation"].includes(b.split))
         throw new ApiError(400, "Invalid dataset split.");
-      await run(
-        "UPDATE images SET annotations=?,reviewed=?,split=? WHERE id=?",
+      const saved = await run(
+        `UPDATE images SET annotations=?,reviewed=?,split=? WHERE id=?
+          AND NOT EXISTS (SELECT 1 FROM json_each(?) AS box
+            WHERE NOT EXISTS (SELECT 1 FROM skus WHERE project_id=?
+              AND id=json_extract(box.value, '$.skuId')))`,
         JSON.stringify(b.boxes),
         b.reviewed ? 1 : 0,
         b.split,
         im.id,
+        JSON.stringify(b.boxes),
+        pid,
       );
+      if (!saved.meta.changes)
+        throw new ApiError(409, "The SKU catalogue changed. Refresh and review these labels again.");
       return Response.json({ ok: true });
     }
     if (action === "deleteImage") {

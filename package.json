@@ -17,7 +17,8 @@
     "worker": "node scripts/start-worker.mjs",
     "test:metrics": "worker/.venv/bin/python -m unittest discover -s tests -p test_metrics.py",
     "test:smoke": "worker/.venv/bin/python tests/smoke.py",
-    "test:security": "worker/.venv/bin/python tests/security.py"
+    "test:security": "worker/.venv/bin/python tests/security.py",
+    "test:sku-removal": "worker/.venv/bin/python tests/sku_removal.py"
   },
   "dependencies": {
     "@base-ui/react": "^1.7.0",

@@ -40,6 +40,7 @@ try:
     request('/api/studio?kind=export&id='+job,expected=404)
     request('/api/studio?kind=job&id='+job,expected=404)
     request('/api/studio',{'action':'sku','projectId':p,'name':'Unauthorized'},expected=404)
+    request('/api/studio',{'action':'deleteSku','projectId':p,'skuId':str(uuid.uuid4())},expected=404)
     state=request('/api/studio')
     assert not any(k['id']==private for k in state['packs'])
     request('/api/studio',{'action':'activate','projectId':own,'packId':private,'acceptTerms':True},expected=404)
