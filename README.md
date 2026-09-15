@@ -2,6 +2,8 @@
 
 Customer-owned product recognition: **Upload → Label → Train → Test → Deploy → Improve.**
 
+For the customer journey, Recognition Marketplace vision, business model and engineering priorities, read the [Solution Concept & Technical Brief](docs/solution-concept.md). It distinguishes the current MVP from planned capabilities; this README covers setup and implementation.
+
 A functioning first MVP for retail / CPG recognition. The full pipeline runs locally with real pretrained-model fine-tuning. The hosted app uses an authenticated Modal recognition worker for training and inference. This deployment has passed a synthetic cloud training and prediction test. Account credentials are kept outside the repository; a new deployment needs its own provider connection.
 
 ## What works
